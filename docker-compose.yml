@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      PGPASSWORD: '${DB_PASSWORD:-secret}'
+      POSTGRES_DB: '${DB_DATABASE}'
+      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+    container_name: postgres-feed
+    volumes:
+      - postgres-feed:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+networks:
+  feed:
+    driver: bridge
+
+volumes:
+  postgres-feed:
