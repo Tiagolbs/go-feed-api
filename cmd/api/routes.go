@@ -9,7 +9,6 @@ func (app *application) routes() *chi.Mux {
 	router.MethodNotAllowed(app.methodNotAllowedResponse)
 
 	router.Route("/api/v1", func(r chi.Router) {
-		r.Get("/healthcheck", app.healthcheckHandler)
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostHandler)
 			r.Get("/{id}", app.showPostHandler)
