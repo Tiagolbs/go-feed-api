@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tiagolbs/go-feed-api/internal/data"
+	"github.com/tiagolbs/go-feed-api/internal/validator"
 )
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +19,17 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
+	post := &data.Post{
+		Content: input.Content,
+	}
+
+	v := validator.New()
+	if data.ValidatePost(v, post); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	fmt.Fprintf(w, "%+v\n", input)
 
 }
