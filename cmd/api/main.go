@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/tiagolbs/go-feed-api/internal/data"
 )
 
 type config struct {
@@ -27,6 +28,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models data.Models
 }
 
 func main() {
@@ -53,6 +55,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
 	srv := &http.Server{
