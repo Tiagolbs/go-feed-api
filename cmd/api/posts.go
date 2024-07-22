@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/tiagolbs/go-feed-api/internal/data"
 	"github.com/tiagolbs/go-feed-api/internal/validator"
@@ -30,27 +30,41 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	fmt.Fprintf(w, "%+v\n", input)
+	err = app.models.Posts.Insert(post)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/posts/%d", post.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"post": post}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) showPostHandler(w http.ResponseWriter, r *http.Request) {
-	postID, err := app.readIDParam(r)
+	id, err := app.readIDParam(r)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	post := data.Post{
-		ID:        postID,
-		Content:   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque mollis orci at erat semper, non lobortis lacus feugiat. Fusce venenatis eros eget libero dapibus pharetra.",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	post, err := app.models.Posts.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"post": post}, nil)
 	if err != nil {
-		app.logger.Println(err)
 		app.serverErrorResponse(w, r, err)
 	}
 }
